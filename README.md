@@ -25,7 +25,7 @@
  Tiny Exprはtinyexpr.hとtinyexpr.cをFaces_Calc.inoと同じフォルダにコピーしてください。
 
  - [M5Stack-SD-Updater](https://github.com/tobozo/M5Stack-SD-Updater)
- - [TinyExpr] (https://github.com/codeplea/tinyexpr)
+ - [TinyExpr](https://github.com/codeplea/tinyexpr)
 
 # 制限事項等
 履歴は最大99件保存できます。（電源を切ると消えます。）
