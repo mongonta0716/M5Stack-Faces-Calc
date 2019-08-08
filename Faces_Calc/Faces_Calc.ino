@@ -5,6 +5,8 @@
 
 #define FACES_KEYBOARD_I2C_ADDR 0x08
 
+TaskHandle_t taskHandle;
+
 // Color Settings
 const unsigned int TITLE     = M5.Lcd.color565(255, 255, 255);
 const unsigned int TITLE_BG  = TFT_BLUE;
@@ -22,6 +24,36 @@ unsigned long time2;
 boolean cursorFlag = true;
 
 int inputMode = 1;
+
+void cursorBlink(void *args) {
+  boolean cursormode = true;
+  for(;;)
+  {
+    if (cursormode) {
+      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.print('_');
+      cursormode = false;
+    } else {
+      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.print(' ');
+      cursormode = true;
+    }
+    delay(500);
+  }
+
+}
+
+void startTask()
+{
+  xTaskCreatePinnedToCore(
+                          cursorBlink,
+                          "cursorBlink",
+                          2048,
+                          NULL,
+                          2,
+                          &taskHandle,
+                          1);
+}
 
 void initScrollArea()
 {
@@ -43,10 +75,12 @@ void changeMode() {
 
   if (inputMode == 0) {
     M5.Lcd.print("Scroll");
+    vTaskDelete(taskHandle);
     inputMode = 1;
   } else {
     M5.Lcd.print("Calc  ");
     displayPrompt();
+    startTask();
     inputMode = 0;
   }
 }
@@ -232,7 +266,6 @@ void setup()
   changeMode();
   time1 = millis();
   //testPrint();
-  
 }
 void loop()
 {
