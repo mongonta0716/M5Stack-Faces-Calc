@@ -25,35 +25,6 @@ boolean cursorFlag = true;
 
 int inputMode = 1;
 
-void cursorBlink(void *args) {
-  boolean cursormode = true;
-  for(;;)
-  {
-    if (cursormode) {
-      M5.Lcd.setCursor(24 + promptNum * 12, 200);
-      M5.Lcd.print('_');
-      cursormode = false;
-    } else {
-      M5.Lcd.setCursor(24 + promptNum * 12, 200);
-      M5.Lcd.print(' ');
-      cursormode = true;
-    }
-    delay(500);
-  }
-
-}
-
-void startTask()
-{
-  xTaskCreatePinnedToCore(
-                          cursorBlink,
-                          "cursorBlink",
-                          2048,
-                          NULL,
-                          2,
-                          &taskHandle,
-                          1);
-}
 
 void initScrollArea()
 {
@@ -68,6 +39,30 @@ void initScrollArea()
   answerArea->setNumOnly(true);
 }
 
+void cursorBlink()
+{
+  if (inputMode == 1) {
+    // Don't display cursor when ScrollMode
+    M5.Lcd.fillRect(0, 200, 320, 20, PROMPT_BG);
+    return;
+  }
+  time2 = millis();
+  unsigned long tmp = time2 - time1;
+  if (tmp > 500) {
+    Serial.println("cursor Change");
+    if (cursorFlag) {
+      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.print('_');
+      cursorFlag = false;
+    } else {
+      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.print(' ');
+      cursorFlag = true;
+    }
+    time1 = time2;
+  }
+}
+
 void changeMode() {
   M5.Lcd.setCursor(240, 220);
   M5.Lcd.setTextColor(PROMPT, PROMPT_BG);
@@ -75,12 +70,10 @@ void changeMode() {
 
   if (inputMode == 0) {
     M5.Lcd.print("Scroll");
-    vTaskDelete(taskHandle);
     inputMode = 1;
   } else {
     M5.Lcd.print("Calc  ");
     displayPrompt();
-    startTask();
     inputMode = 0;
   }
 }
@@ -282,6 +275,7 @@ void loop()
       pushButton(c);
     }
   }
+  cursorBlink();
   delay(10);
 
 }
