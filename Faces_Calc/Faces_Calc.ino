@@ -212,32 +212,6 @@ void calc() {
   displaySummary();
 }
 
-void testPrint() {
-  scrollArea->println("Initial-------------");
-  scrollArea->println("Line1");
-  scrollArea->println("012345678901234567890123456789");
-  scrollArea->println("Line3");
-  scrollArea->println("012345678901234567890123456789");
-  scrollArea->println("Line5");
-  scrollArea->println("This is TextScroll Demo.Press key!!!!!!!!!!!!!!!!!!!!!");
-  scrollArea->println("Line7");
-  scrollArea->println("012345678901234567890123456789");
-  scrollArea->println("Line9");
-  scrollArea->println("012345678901234567890123456789");
-
-  answerArea->println("ans1");
-  answerArea->println("ans2");
-  answerArea->println("ans3");
-  answerArea->println("ans4");
-  answerArea->println("ans5");
-  answerArea->println("ans6");
-  answerArea->println("ans7");
-  answerArea->println("ans8");
-  answerArea->println("ans9");
-  answerArea->println("ans10");
-
-}
-
 void setup()
 {
   M5.begin();
@@ -258,8 +232,8 @@ void setup()
   initScrollArea();
   changeMode();
   time1 = millis();
-  //testPrint();
 }
+
 void loop()
 {
 
