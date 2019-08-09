@@ -1,6 +1,6 @@
 #pragma once
 #include <M5Stack.h>
-
+#include <SPIFFS.h>
 
 class ScrollArea
 {
@@ -30,7 +30,7 @@ private:
   
   bool visibleRowNo;
   bool numOnly;
-
+  
   void drawArea();
   void displayRowNo(int no);
 
@@ -50,4 +50,7 @@ public:
   void setNumOnly(boolean paramNumOnly);
   double sum();
   String getCurrentValue();
+  void writeBuffer2spiffs(String filename);
+  void readSpiffs(String filename);
+
 };

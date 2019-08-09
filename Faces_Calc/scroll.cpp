@@ -63,23 +63,17 @@ void ScrollArea::println(String str)
 
   Serial.println("ScrollArea::println:" + str);
   Serial.printf("row:%d", row);
-//  if (row > 0) {
-//    buffer[row + 1] = buffer[row];
-//  }
-  buffer[row] = str + "\0";
+  buffer[row] = str;
+  Serial.printf("Buffer:%s\n" , buffer[row]);
   
-  drawArea();
   Serial.println(str);
   row += 1;
+  drawArea();
 }
 
 void ScrollArea::up() {
-  row--;
-  drawArea();
-}
-
-void ScrollArea::down() {
-  row++;
+  row -= 1;
+  Serial.printf("Up  :%d\n", row);
   if (row < 0) {
     row = 0;
     return;
@@ -87,13 +81,23 @@ void ScrollArea::down() {
   drawArea();
 }
 
+void ScrollArea::down() {
+  row += 1;
+  Serial.printf("Down:%d\n", row);
+  if (row > 100) {
+    row = 99;
+    return;
+  }
+  drawArea();
+}
+
 void ScrollArea::right() {
-  col++;
+  col += 1;
   drawArea();
 }
 
 void ScrollArea::left() {
-  col--;
+  col -= 1;
   if (col < 0) {
     col = 0;
     return;
@@ -142,6 +146,9 @@ void ScrollArea::drawArea()
     }
   } else {
     for (int i = 0; i < maxLines; i++) {
+      if ((row + i - currentRow) > 100) {
+        break;
+      }
       M5.Lcd.setCursor(x, y + i * textHeight);
       displayRowNo( row + i - currentRow);
       M5.Lcd.print(buffer[row + i - currentRow].substring(col, col + maxChars));
@@ -158,4 +165,44 @@ void ScrollArea::displayRowNo(int no)
     M5.Lcd.printf("%2d:", no + 1);
   }
 }
+
+void ScrollArea::writeBuffer2spiffs(String filename)
+{
+  File file;
+  file = SPIFFS.open(filename, FILE_WRITE);
+  
+  for (int i = 0; i < 100; i++) {
+    file.println(buffer[i]);
+  }
+  file.println(row);
+  file.close();
+}
+
+void ScrollArea::readSpiffs(String filename)
+{
+  File file;
+  file = SPIFFS.open(filename);
+  unsigned long filesize = file.size();
+  if(filesize == 0) {
+    file.close();
+    writeBuffer2spiffs(filename);
+    return;
+  }
+  String tmpstr;
+  for (int i = 0; i < 100; i++) {
+    tmpstr = file.readStringUntil('\n');
+    Serial.println("ReadBuf:" + tmpstr + ":");
+    if (!numOnly) {
+      tmpstr.trim();
+    }
+    buffer[i] = tmpstr;
+  }
+  String rowstr = file.readStringUntil('\n');
+  Serial.println("Row:" + rowstr + ":");
+  row = rowstr.toInt();
+  col = 0;
+  file.close();
+  drawArea();
+}
+
 

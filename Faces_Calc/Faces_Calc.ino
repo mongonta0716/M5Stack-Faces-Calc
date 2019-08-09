@@ -18,6 +18,8 @@ int  promptNum = 0;
 
 ScrollArea *scrollArea;
 ScrollArea *answerArea;
+String filenameSA = "/scrollarea.tmp";
+String filenameAA = "/answerarea.tmp";
 
 unsigned long time1;
 unsigned long time2;
@@ -37,6 +39,16 @@ void initScrollArea()
                               M5.Lcd.color565(0xff, 0xff, 0xff),
                               M5.Lcd.color565(0xaf, 0xd0, 0xef));
   answerArea->setNumOnly(true);
+
+  M5.update();
+  if (M5.BtnB.isPressed()) {
+    SPIFFS.remove(filenameSA);
+    SPIFFS.remove(filenameAA);
+  }
+
+  scrollArea->readSpiffs(filenameSA);
+  answerArea->readSpiffs(filenameAA);
+  
 }
 
 void cursorBlink()
@@ -49,7 +61,6 @@ void cursorBlink()
   time2 = millis();
   unsigned long tmp = time2 - time1;
   if (tmp > 500) {
-    Serial.println("cursor Change");
     if (cursorFlag) {
       M5.Lcd.setCursor(24 + promptNum * 12, 200);
       M5.Lcd.print('_');
@@ -121,6 +132,8 @@ void allClear() {
   if (c == '=') {
     scrollArea->init();
     answerArea->init();
+    scrollArea->writeBuffer2spiffs(filenameSA);
+    answerArea->writeBuffer2spiffs(filenameAA);
     inputMode = 1;
     changeMode();
     clearPromptBuffer();
@@ -209,6 +222,8 @@ void calc() {
   snprintf(buf, 13, "%12.0f", answer);
   scrollArea->println(promptBuffer);
   answerArea->println(buf);
+  scrollArea->writeBuffer2spiffs(filenameSA);
+  answerArea->writeBuffer2spiffs(filenameAA);
   displaySummary();
 }
 
@@ -221,7 +236,7 @@ void setup()
     updateFromFS(SD);
     ESP.restart();
   }
-
+  SPIFFS.begin();
   pinMode(5, INPUT);
   digitalWrite(5,HIGH);
   M5.Lcd.setTextDatum(TC_DATUM);
@@ -230,6 +245,7 @@ void setup()
   M5.Lcd.setTextColor(TITLE, TITLE_BG);
   M5.Lcd.printf("M5Stack Faces\n   Integer Calculator\n");
   initScrollArea();
+  displaySummary();
   changeMode();
   time1 = millis();
 }
