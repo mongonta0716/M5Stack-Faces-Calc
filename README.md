@@ -27,9 +27,14 @@
  - [M5Stack-SD-Updater](https://github.com/tobozo/M5Stack-SD-Updater)
  - [TinyExpr](https://github.com/codeplea/tinyexpr)
 
-# 制限事項等
-履歴は最大99件保存できます。（電源を切ると消えます。）
+# 細かい機能や制限事項等
+履歴は最大99件保存できます。（電源を切ったり、リセットしても保持されます。）
 表示桁数の関係で答えは999,999,999,999～-99,999,999,999の範囲を超えるとエラーになります。
+
+# もし文字化けして起動しなくなった場合
+一時ファイルをSPIFFSに持っていますが、文字化けすると起動後にハングするようになります。
+その場合はM5StackCoreのBボタン（真ん中のボタン）を押しながら起動してください。
+
 
 # Licence
 [MIT](https://github.com/mongonta0716/M5Stack-Faces-Calc/blob/master/LICENSE)
