@@ -204,5 +204,3 @@ void ScrollArea::readSpiffs(String filename)
   file.close();
   drawArea();
 }
-
-

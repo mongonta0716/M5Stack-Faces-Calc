@@ -183,7 +183,7 @@ void pushButton(char c) {
         calc();
         clearPromptBuffer();
         break;
-      case '.': // BackSpace
+      case '`': // BackSpace
         if (promptNum == 0) break;
         promptNum--;
         promptBuffer[promptNum] = '\0';
