@@ -11,10 +11,9 @@
 TaskHandle_t taskHandle;
 
 // Color Settings
-const uint16_t TITLE     = M5.Lcd.color565(255, 255, 255);
-const uint16_t TITLE_BG  = TFT_BLUE;
 const uint16_t PROMPT    = TFT_WHITE;
 const uint16_t PROMPT_BG = TFT_BLACK;
+const uint16_t HELP      = TFT_LIGHTGREY;
 
 char promptBuffer[200];
 int  promptNum = 0;
@@ -34,11 +33,11 @@ int inputMode = 1;
 void initScrollArea()
 {
   scrollArea = new ScrollArea(true, true,
-                              16, 12, 0, 38, 160, 129,
+                              16, 12, 0, 6, 160, 129,
                               M5.Lcd.color565(0xff, 0xff, 0xff),
                               M5.Lcd.color565(0x66, 0xb7, 0xec));
   answerArea = new ScrollArea(true, false,
-                              16, 12, 160, 38, 160, 129,
+                              16, 12, 160, 6, 160, 129,
                               M5.Lcd.color565(0xff, 0xff, 0xff),
                               M5.Lcd.color565(0xaf, 0xd0, 0xef));
   answerArea->setNumOnly(true);
@@ -58,18 +57,18 @@ void cursorBlink()
 {
   if (inputMode == 1) {
     // Don't display cursor when ScrollMode
-    M5.Lcd.fillRect(0, 200, 320, 20, PROMPT_BG);
+    M5.Lcd.fillRect(0, 168, 320, 20, PROMPT_BG);
     return;
   }
   time2 = millis();
   unsigned long tmp = time2 - time1;
   if (tmp > 500) {
     if (cursorFlag) {
-      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.setCursor(24 + promptNum * 12, 168);
       M5.Lcd.print('_');
       cursorFlag = false;
     } else {
-      M5.Lcd.setCursor(24 + promptNum * 12, 200);
+      M5.Lcd.setCursor(24 + promptNum * 12, 168);
       M5.Lcd.print(' ');
       cursorFlag = true;
     }
@@ -78,18 +77,35 @@ void cursorBlink()
 }
 
 void changeMode() {
-  M5.Lcd.setCursor(240, 220);
+  M5.Lcd.setCursor(188, 188);
   M5.Lcd.setTextColor(PROMPT, PROMPT_BG);
-  M5.Lcd.fillRect(0, 200, 320, 20, PROMPT_BG);
+  M5.Lcd.fillRect(0, 168, 320, 20, PROMPT_BG);
 
   if (inputMode == 0) {
-    M5.Lcd.print("Scroll");
+    M5.Lcd.print("Mode:Scroll");
     inputMode = 1;
   } else {
-    M5.Lcd.print("Calc  ");
+    M5.Lcd.print("Mode:Calc  ");
     displayPrompt();
     inputMode = 0;
   }
+  displayKeyHelp();
+}
+
+void displayKeyHelp() {
+  M5.Lcd.fillRect(0, 208, 320, 32, PROMPT_BG);
+  M5.Lcd.setTextColor(HELP, PROMPT_BG);
+  M5.Lcd.setCursor(0, 208);
+  if (inputMode == 0) {
+    M5.Lcd.print("A:AC  M:Mode  %:Clear");
+    M5.Lcd.setCursor(0, 224);
+    M5.Lcd.print("+/-:BS  =:Calc");
+  } else {
+    M5.Lcd.print("A:AC  M:Mode");
+    M5.Lcd.setCursor(0, 224);
+    M5.Lcd.print("2/4/6/8:Move  5:Edit");
+  }
+  M5.Lcd.setTextColor(PROMPT, PROMPT_BG);
 }
 
 // Read 1 byte from Faces keyboard by polling. Returns false if no key was read.
@@ -118,24 +134,24 @@ char waitKeyInput() {
 }
 
 void displayPrompt() {
-  M5.Lcd.fillRect(0, 200, 320, 20, PROMPT_BG);
+  M5.Lcd.fillRect(0, 168, 320, 20, PROMPT_BG);
   M5.Lcd.setTextColor(PROMPT, PROMPT_BG);
-  M5.Lcd.setCursor(0, 200);
+  M5.Lcd.setCursor(0, 168);
   M5.Lcd.print("> ");
   M5.Lcd.print(promptBuffer);
 }
 
 void displaySummary() {
   double sum = answerArea->sum();
-  M5.Lcd.fillRect(0, 180, 320, 20, PROMPT_BG);
+  M5.Lcd.fillRect(0, 148, 320, 20, PROMPT_BG);
   M5.Lcd.setTextColor(PROMPT, PROMPT_BG);
-  M5.Lcd.setCursor(110, 181);
+  M5.Lcd.setCursor(110, 149);
   M5.Lcd.printf("SUM:%12.0f", sum);
   
 }
 
 void allClear() {
-  M5.Lcd.setCursor(0, 200);
+  M5.Lcd.setCursor(0, 168);
   M5.Lcd.setTextColor(TFT_BLACK, TFT_RED);
   M5.Lcd.print("All clear? yes(=)");
   char c = waitKeyInput();
@@ -223,13 +239,13 @@ void calc() {
   double answer;
   const char *expression = promptBuffer;
   answer = te_interp(expression, 0);
-  M5.Lcd.setCursor(0, 220);
-  M5.Lcd.fillRect(0, 220, 239, 20, PROMPT_BG);
+  M5.Lcd.setCursor(0, 188);
+  M5.Lcd.fillRect(0, 188, 188, 20, PROMPT_BG);
   if ((answer > 999999999999) || (answer < -99999999999)) {
-    M5.Lcd.print("OverFlow!        ");
+    M5.Lcd.print("OverFlow!");
     return;
   } else if (isnan(answer)) {
-    M5.Lcd.print("Wrong expression!");
+    M5.Lcd.print("Wrong expr!");
     return;
   }
   M5.Lcd.printf("%12.0f", answer);
@@ -255,9 +271,6 @@ void setup()
   SPIFFS.begin(true);
   M5.Lcd.setTextDatum(TC_DATUM);
   M5.Lcd.setTextSize(2);
-  M5.Lcd.fillRect(0, 0, 320, 32, TITLE_BG);
-  M5.Lcd.setTextColor(TITLE, TITLE_BG);
-  M5.Lcd.printf("M5Stack Faces\n   Integer Calculator\n");
   if (!M5.In_I2C.scanID(FACES_KEYBOARD_I2C_ADDR, FACES_KEYBOARD_I2C_FREQ)) {
     Serial.println("Faces Calculator not found.");
   } else {
