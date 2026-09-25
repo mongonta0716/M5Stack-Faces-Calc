@@ -1,13 +1,24 @@
 # M5Stack-Faces-Calc
 
+日本語 | [English](README_en.md)
+
  M5Stack FacesのCalculatorモジュールを利用した計算機です。
  
  Calculator for M5Stack Faces with Caluculator Module
 
- [Faces Calculator3](https://docs.m5stack.com/en/faces/Faces_Calculator3) に対応しています。
+# Faces Calculator3 対応
+ [Faces Calculator3](https://docs.m5stack.com/en/faces/Faces_Calculator3) に対応しました。
+
+- M5Stack Basic + Faces Calculator3（ファームウェア V03）で動作確認しています。
+- キー入力はI2C（アドレス 0x08、M5Unifiedの `M5.In_I2C`）をポーリングして読み取ります。INTピンは使用しません。
+- Calculator3の長押し操作に対応しています。
+  - Aキー長押し：BackSpace
+  - =キー長押し：Calc Execute
 
 # 使い方(Usage)
- Faces_Calc/build フォルダ配下にあるFaces_Calc.bin,jpgフォルダ,jsonフォルダをmicroSDにコピーして、[M5Stack LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)から呼び出します。
+ PlatformIOでビルドして書き込みます（後述の「コンパイル」を参照）。
+
+ [M5Stack LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)から起動する場合は、ビルドで生成された `.pio/build/m5stack-basic/firmware.bin` を `Faces_Calc.bin` という名前でmicroSDにコピーしてください。Aボタンを押しながら起動するとランチャー（menu.bin）に戻ります。
 
  ## 操作
 
