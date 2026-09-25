@@ -65,5 +65,7 @@ In that case, hold button B (the middle button) of the M5Stack Core while bootin
 # Licence
 [MIT](https://github.com/mongonta0716/M5Stack-Faces-Calc/blob/master/LICENSE)
 
+`lib/tinyexpr` bundles [TinyExpr](https://github.com/codeplea/tinyexpr) (Copyright (c) Lewis Van Winkle), which is licensed under the [zlib License](lib/tinyexpr/LICENSE).
+
 # Author
 [Takao Akaki](https://twitter.com/mongonta555)
