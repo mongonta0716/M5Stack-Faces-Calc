@@ -1,5 +1,5 @@
 #pragma once
-#include <M5Stack.h>
+#include <M5Unified.h>
 #include <SPIFFS.h>
 
 class ScrollArea

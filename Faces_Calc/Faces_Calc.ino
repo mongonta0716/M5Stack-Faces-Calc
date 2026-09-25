@@ -1,17 +1,20 @@
-#include <M5Stack.h>
+#include <SD.h>
+#include <SPIFFS.h>
+#include <M5Unified.h>
 #include <M5StackUpdater.h>
 #include "scroll.h"
 #include "tinyexpr.h"
 
 #define FACES_KEYBOARD_I2C_ADDR 0x08
+#define FACES_KEYBOARD_I2C_FREQ 100000
 
 TaskHandle_t taskHandle;
 
 // Color Settings
-const unsigned int TITLE     = M5.Lcd.color565(255, 255, 255);
-const unsigned int TITLE_BG  = TFT_BLUE;
-const unsigned int PROMPT    = TFT_WHITE;
-const unsigned int PROMPT_BG = TFT_BLACK;
+const uint16_t TITLE     = M5.Lcd.color565(255, 255, 255);
+const uint16_t TITLE_BG  = TFT_BLUE;
+const uint16_t PROMPT    = TFT_WHITE;
+const uint16_t PROMPT_BG = TFT_BLACK;
 
 char promptBuffer[200];
 int  promptNum = 0;
@@ -89,19 +92,26 @@ void changeMode() {
   }
 }
 
+// Read 1 byte from Faces keyboard by polling. Returns false if no key was read.
+// Faces is connected to the internal I2C bus (SDA:21, SCL:22) on M5Stack Basic.
+bool readFacesKey(char *c) {
+  uint8_t data = 0;
+  bool result = false;
+  if (M5.In_I2C.start(FACES_KEYBOARD_I2C_ADDR, true, FACES_KEYBOARD_I2C_FREQ)) {
+    result = M5.In_I2C.read(&data, 1, true);
+  }
+  M5.In_I2C.stop();
+  if (!result || data == 0x00) return false;
+  *c = (char)data;
+  Serial.print(*c);         // print the character
+  return true;
+}
+
 char waitKeyInput() {
   while(true) {
     char c;
-  
-    if (digitalRead(5) == LOW)
-    {
-      Wire.requestFrom(FACES_KEYBOARD_I2C_ADDR, 1);
-      while (Wire.available())
-      {
-        c = Wire.read(); // receive a byte as character
-        Serial.print(c);         // print the character
-        return c;
-      }
+    if (readFacesKey(&c)) {
+      return c;
     }
     delay(10);
   }
@@ -143,6 +153,11 @@ void allClear() {
 }
 
 void pushButton(char c) {
+  // Faces Calculator3 long press codes
+  if (c == 0x08) c = '`';  // Long press A : BackSpace
+  if (c == 0x0D) c = '=';  // Long press = : Calc Execute
+  if (c < 0x20 || c > 0x7E) return;  // Ignore no key / unknown codes
+
   if (c == 'M') {
     changeMode();
     return;
@@ -192,6 +207,7 @@ void pushButton(char c) {
         clearPromptBuffer();
         break;
       default:
+        if (promptNum >= (int)sizeof(promptBuffer) - 1) break;
         promptBuffer[promptNum] = c;
         promptNum++;
         break;
@@ -229,21 +245,26 @@ void calc() {
 
 void setup()
 {
-  M5.begin();
-  Wire.begin();
-  if(digitalRead(BUTTON_A_PIN) == 0) {
+  auto cfg = M5.config();
+  M5.begin(cfg);
+  if (M5.BtnA.isPressed()) {
     Serial.println("Will Load menu binary");
-    updateFromFS(SD);
+    updateFromFS(SD, MENU_BIN, TFCARD_CS_PIN);
     ESP.restart();
   }
-  SPIFFS.begin();
-  pinMode(5, INPUT);
-  digitalWrite(5,HIGH);
+  SPIFFS.begin(true);
   M5.Lcd.setTextDatum(TC_DATUM);
   M5.Lcd.setTextSize(2);
   M5.Lcd.fillRect(0, 0, 320, 32, TITLE_BG);
   M5.Lcd.setTextColor(TITLE, TITLE_BG);
   M5.Lcd.printf("M5Stack Faces\n   Integer Calculator\n");
+  if (!M5.In_I2C.scanID(FACES_KEYBOARD_I2C_ADDR, FACES_KEYBOARD_I2C_FREQ)) {
+    Serial.println("Faces Calculator not found.");
+  } else {
+    Serial.printf("Faces model:0x%02X fw:0x%02X\n",
+                  M5.In_I2C.readRegister8(FACES_KEYBOARD_I2C_ADDR, 0xD0, FACES_KEYBOARD_I2C_FREQ),
+                  M5.In_I2C.readRegister8(FACES_KEYBOARD_I2C_ADDR, 0xFE, FACES_KEYBOARD_I2C_FREQ));
+  }
   initScrollArea();
   displaySummary();
   changeMode();
@@ -255,15 +276,9 @@ void loop()
 
   char c;
   
-  if (digitalRead(5) == LOW)
+  if (readFacesKey(&c))
   {
-    Wire.requestFrom(FACES_KEYBOARD_I2C_ADDR, 1);
-    while (Wire.available())
-    {
-      c = Wire.read(); // receive a byte as character
-      Serial.print(c);         // print the character
-      pushButton(c);
-    }
+    pushButton(c);
   }
   cursorBlink();
   delay(10);
