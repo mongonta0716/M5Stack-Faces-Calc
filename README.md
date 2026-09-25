@@ -67,6 +67,8 @@ ArduinoIDEでコンパイル時に設定で警告を「なし」以外ではコ�
 # Licence
 [MIT](https://github.com/mongonta0716/M5Stack-Faces-Calc/blob/master/LICENSE)
 
+`lib/tinyexpr` は [TinyExpr](https://github.com/codeplea/tinyexpr)（Copyright (c) Lewis Van Winkle）を同梱しており、[zlib License](lib/tinyexpr/LICENSE) に従います。
+
 # Author
 [Takao Akaki](https://twitter.com/mongonta555)
 
